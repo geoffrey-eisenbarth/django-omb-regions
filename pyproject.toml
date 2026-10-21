@@ -1,0 +1,86 @@
+[project]
+name = "django-omb-regions"
+version = "0.1.0"
+description = "Versioned US states, counties, and OMB regions for GeoDjango."
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+  { name = "Geoffrey Eisenbarth", email = "geoffrey.eisenbarth@gmail.com" },
+]
+keywords = ["django", "geodjango", "gis", "geography", "census", "omb", "tiger"]
+classifiers = [
+  "Framework :: Django",
+  "Framework :: Django :: 6.0",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: GIS",
+]
+dependencies = [
+  "django>=6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/geoffrey-eisenbarth/django-omb-regions"
+Repository = "https://github.com/geoffrey-eisenbarth/django-omb-regions"
+Issues = "https://github.com/geoffrey-eisenbarth/django-omb-regions/issues"
+
+[project.optional-dependencies]
+ingest = [
+  "requests>=2.33.1",
+  "pandas>=3.0.2",
+  "titlecase>=2.4.1",
+  "openpyxl>=3.1.5",
+  "xlrd>=2.0.2",
+  "certifi>=2026.10.19",
+]
+
+[dependency-groups]
+dev = [
+  "ruff>=0.14.0",
+  "mypy>=1.20.1",
+  "django-stubs>=6.0.2",
+  "psycopg[binary]>=3.3.3",
+  "pytest>=9.1.1",
+  "pytest-django>=4.14.0",
+  "types-requests>=2.33.0",
+  "certifi>=2026.10.19",
+  "pre-commit>=4.6.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["omb_regions"]
+
+[tool.ruff]
+line-length = 88
+indent-width = 2
+target-version = "py314"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "DJ"]
+
+[tool.mypy]
+python_version = "3.14"
+files = ["omb_regions"]
+plugins = ["mypy_django_plugin.main"]
+strict = true
+exclude = ["migrations/"]
+
+[tool.django-stubs]
+django_settings_module = "tests.settings"
+
+[[tool.mypy.overrides]]
+module = ["titlecase.*", "pandas.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+python_files = ["test_*.py", "*_tests.py", "tests.py"]

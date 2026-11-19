@@ -8,7 +8,7 @@ from django.db import transaction
 
 from django_omb_regions.enums import DelineationBulletin
 from django_omb_regions.management.commands._region_sync_base import (
-  RegionSyncBaseCommand,  # noqa: E501
+  RegionSyncBaseCommand,
 )
 from django_omb_regions.management.commands._sync_base import SyncSummary
 from django_omb_regions.models import County, Region

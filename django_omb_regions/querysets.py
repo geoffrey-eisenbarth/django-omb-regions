@@ -5,7 +5,7 @@ from django.db.models import QuerySet
 from .enums import DelineationBulletin
 
 if TYPE_CHECKING:
-  from .models import Region  # noqa: F401
+  from .models import Region
 
 
 class RegionQuerySet[R = "Region"](QuerySet["Region", R]):

@@ -49,4 +49,12 @@ jobs:
         run: uv run mypy
 
       - name: Pytest
-        run: uv run pytest -q
+        run: |
+          uv run coverage run -m pytest -q
+          uv run coverage xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: geoffrey-eisenbarth/django-omb-regions

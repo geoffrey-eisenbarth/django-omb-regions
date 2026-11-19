@@ -12,7 +12,7 @@ from django.db import transaction
 from django_omb_regions.enums import DelineationBulletin, RegionCategory
 from django_omb_regions.management.commands._region_sync_base import (
   RegionSyncBaseCommand,
-)  # noqa: E501
+)
 from django_omb_regions.management.commands._sync_base import SyncSummary
 from django_omb_regions.models import County, Region
 
@@ -24,13 +24,13 @@ if TYPE_CHECKING:
 #: December 2003 tabulation of the first (2000-standard) CBSAs; 2013 onward are
 #: the standard ``list1`` delineation files.
 DELINEATION_FILES = {
-  DelineationBulletin.B0304: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2003/historical-delineation-files/0312cbsas-csas.xls",  # noqa: E501
-  DelineationBulletin.B1301: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2013/delineation-files/list1.xls",  # noqa: E501
-  DelineationBulletin.B1501: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2015/delineation-files/list1.xls",  # noqa: E501
-  DelineationBulletin.B1701: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2017/delineation-files/list1.xls",  # noqa: E501
-  DelineationBulletin.B1804: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2018/delineation-files/list1_Sep_2018.xls",  # noqa: E501
-  DelineationBulletin.B2001: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2020/delineation-files/list1_2020.xls",  # noqa: E501
-  DelineationBulletin.B2301: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2023/delineation-files/list1_2023.xlsx",  # noqa: E501
+  DelineationBulletin.B0304: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2003/historical-delineation-files/0312cbsas-csas.xls",
+  DelineationBulletin.B1301: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2013/delineation-files/list1.xls",
+  DelineationBulletin.B1501: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2015/delineation-files/list1.xls",
+  DelineationBulletin.B1701: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2017/delineation-files/list1.xls",
+  DelineationBulletin.B1804: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2018/delineation-files/list1_Sep_2018.xls",
+  DelineationBulletin.B2001: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2020/delineation-files/list1_2020.xls",
+  DelineationBulletin.B2301: "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2023/delineation-files/list1_2023.xlsx",
 }
 
 #: Bulletins whose reference files predate the single-sheet ``list1`` layout
@@ -42,8 +42,8 @@ DELINEATION_FILES = {
 #: still Texas-only) that the 2003 snapshot lacks.
 LEGACY_DELINEATION_FILES = {
   DelineationBulletin.B1002: {
-    "components": "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2009/historical-delineation-files/list1.txt",  # noqa: E501
-    "combined": "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2009/historical-delineation-files/list6.txt",  # noqa: E501
+    "components": "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2009/historical-delineation-files/list1.txt",
+    "combined": "https://www2.census.gov/programs-surveys/metro-micro/geographies/reference-files/2009/historical-delineation-files/list6.txt",
   },
 }
 
@@ -266,9 +266,9 @@ class Command(RegionSyncBaseCommand):
       )
       df = df[df["CBSA Code"].notna() & df["full_code"].notna()].copy()
 
-      for label, group in df.groupby("Metropolitan/Micropolitan Statistical Area"):  # noqa: E501
+      for label, group in df.groupby("Metropolitan/Micropolitan Statistical Area"):
         record_category = CATEGORY_BY_LABEL.get(str(label))
-        if record_category is None or (category and category != record_category):  # noqa: E501
+        if record_category is None or (category and category != record_category):
           continue
         for (code, name), cbsa in group.groupby(
           [

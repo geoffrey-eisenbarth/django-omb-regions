@@ -50,14 +50,15 @@ dev = [
   "certifi>=2026.10.19",
   "pre-commit>=4.6.2",
   "python-dotenv>=1.2.1",
+  "coverage>=7.13.5",
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.12.12,<0.13.0"]
+build-backend = "uv_build"
 
-[tool.hatch.build.targets.wheel]
-packages = ["django_omb_regions"]
+[tool.uv.build-backend]
+module-root = ""
 
 [tool.ruff]
 line-length = 88
@@ -66,7 +67,16 @@ target-version = "py314"
 extend-exclude = ["*/migrations/*"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "DJ"]
+select = ["E", "W", "F", "I", "UP", "RUF100", "DJ"]
+ignore = [
+  "E111",  # Indentation is not a multiple of four
+  "E114",  # Comment indentation is not a multiple of four
+  "E731",  # Do not assign a lambda expression, use a def
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
 
 [tool.mypy]
 python_version = "3.14"
@@ -85,3 +95,10 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
 python_files = ["test_*.py", "*_tests.py", "tests.py"]
+
+[tool.coverage.run]
+branch = true
+source = ["django_omb_regions"]
+
+[tool.coverage.report]
+show_missing = true

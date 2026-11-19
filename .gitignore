@@ -11,6 +11,10 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 
+# Coverage
+.coverage
+coverage.xml
+
 # Environment variables for testing
 .env
 

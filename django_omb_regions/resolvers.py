@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from omb_regions.constants import USA_FIPS, is_state_code
-from omb_regions.models import County, Region, State
+from django_omb_regions.constants import USA_FIPS, is_state_code
+from django_omb_regions.models import County, Region, State
 
 if TYPE_CHECKING:
   from collections.abc import Iterable
@@ -28,7 +28,6 @@ class Geography:
       Region.Category.MSA,
       Region.Category.MDIV,
       Region.Category.MIC,
-      Region.Category.FROST,
     }
 
   @property
@@ -51,7 +50,8 @@ def resolve_region_codes(
 
   states = State.objects.in_bulk(state_codes, field_name="code")
   regions = {
-    region.code: region for region in Region.current.filter(code__in=other_codes)
+    region.code: region
+    for region in Region.objects.current_or_static(code__in=other_codes)
   }
   county_codes = [code for code in other_codes if code not in regions]
   counties = County.objects.in_bulk(county_codes, field_name="code")

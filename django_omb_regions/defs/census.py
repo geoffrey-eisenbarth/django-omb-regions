@@ -1,4 +1,4 @@
-# Curated region definitions for sync_omb_regions.
+# Curated region definitions for sync_django_omb_regions.
 
 
 REGIONS = [

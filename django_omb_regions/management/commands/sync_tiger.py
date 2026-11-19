@@ -10,7 +10,7 @@ from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from omb_regions.models import WGS_SRID, County, State
+from django_omb_regions.models import WGS_SRID, County, State
 
 if TYPE_CHECKING:
   from typing import Any, Literal

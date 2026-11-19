@@ -8,10 +8,12 @@ import requests
 from django.core.management.base import CommandError
 from django.db import transaction
 
-from omb_regions.enums import DelineationBulletin
-from omb_regions.management.commands._region_sync_base import RegionSyncBaseCommand  # noqa: E501
-from omb_regions.management.commands._sync_base import SyncSummary
-from omb_regions.models import County, Region
+from django_omb_regions.enums import DelineationBulletin
+from django_omb_regions.management.commands._region_sync_base import (
+  RegionSyncBaseCommand,
+)  # noqa: E501
+from django_omb_regions.management.commands._sync_base import SyncSummary
+from django_omb_regions.models import County, Region
 
 if TYPE_CHECKING:
   from typing import Any

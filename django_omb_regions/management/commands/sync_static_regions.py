@@ -1,14 +1,17 @@
 from dataclasses import dataclass
+from importlib import import_module
 from typing import TYPE_CHECKING
 
+from django.conf import settings
 from django.core.management.base import CommandError
 from django.db import transaction
 
-from omb_regions import defs
-from omb_regions.enums import DelineationBulletin
-from omb_regions.management.commands._region_sync_base import RegionSyncBaseCommand  # noqa: E501
-from omb_regions.management.commands._sync_base import SyncSummary
-from omb_regions.models import County, Region
+from django_omb_regions.enums import DelineationBulletin
+from django_omb_regions.management.commands._region_sync_base import (
+  RegionSyncBaseCommand,  # noqa: E501
+)
+from django_omb_regions.management.commands._sync_base import SyncSummary
+from django_omb_regions.models import County, Region
 
 if TYPE_CHECKING:
   from typing import Any
@@ -37,6 +40,15 @@ class Command(RegionSyncBaseCommand):
 
   def add_arguments(self, parser: Any) -> None:
     parser.add_argument(
+      "--defs",
+      type=str,
+      help=(
+        "Dotted path to a module exposing a REGIONS list. Defaults to the "
+        "DJANGO_OMB_REGIONS_STATIC_DEFS setting, then the bundled "
+        "django_omb_regions.defs."
+      ),
+    )
+    parser.add_argument(
       "--category",
       type=str,
       help="Optional static region category to sync.",
@@ -50,6 +62,7 @@ class Command(RegionSyncBaseCommand):
 
   def handle(self, *args: Any, **options: Any) -> None:
     source_data = self._fetch(
+      defs_path=options.get("defs"),
       category=options.get("category"),
       bulletin=options.get("bulletin"),
     )
@@ -61,6 +74,7 @@ class Command(RegionSyncBaseCommand):
   def _fetch(
     self,
     *,
+    defs_path: str | None,
     category: str | None,
     bulletin: str | None,
   ) -> list[dict[str, Any]]:
@@ -69,15 +83,41 @@ class Command(RegionSyncBaseCommand):
     default_delineation_bulletin = self._get_default_delineation_bulletin(
       bulletin=bulletin,
     )
+    region_defs = self._load_region_definitions(defs_path)
     source_data = [
       {
         **record,
         "default_delineation_bulletin": default_delineation_bulletin,
       }
-      for record in defs.REGIONS
+      for record in region_defs
       if category is None or record["category"] == category
     ]
     return source_data
+
+  def _load_region_definitions(self, defs_path: str | None) -> list[dict[str, Any]]:
+    dotted_path = (
+      defs_path
+      or getattr(settings, "DJANGO_OMB_REGIONS_STATIC_DEFS", None)
+      or "django_omb_regions.defs"
+    )
+    try:
+      module = import_module(dotted_path)
+    except ImportError as error:
+      raise CommandError(
+        f"Could not import static region defs module '{dotted_path}': {error}."
+      )
+
+    try:
+      regions = module.REGIONS
+    except AttributeError:
+      raise CommandError(
+        f"Static region defs module '{dotted_path}' has no REGIONS list."
+      )
+
+    try:
+      return [dict(record) for record in regions]
+    except TypeError:
+      raise CommandError(f"REGIONS in '{dotted_path}' must be an iterable of mappings.")
 
   def _build_records(
     self,
@@ -106,7 +146,7 @@ class Command(RegionSyncBaseCommand):
 
     summary = SyncSummary()
     existing_keys = set(
-      Region.versions.filter(
+      Region.objects.filter(
         code__in=[record.code for record in records],
         delineation_bulletin__in=[record.delineation_bulletin for record in records],
       ).values_list("code", "delineation_bulletin")
@@ -198,16 +238,32 @@ class Command(RegionSyncBaseCommand):
   ) -> DelineationBulletin:
     if bulletin:
       return DelineationBulletin(bulletin)
-    return DelineationBulletin.get_current()
+    return DelineationBulletin.NA
 
   def _resolve_counties_from_components(
     self,
     components: tuple[RegionComponent, ...],
     delineation_bulletin: DelineationBulletin,
   ) -> list[County] | None:
-    codes = [component.code for component in components]
-    counties = self._resolve_counties_from_codes(codes, delineation_bulletin)
-    return counties
+    """Resolve every component to counties, all-or-nothing.
+
+    Returns None if any single component is unresolved, so the record stays
+    pending: the component may be another static region not yet synced (the
+    retry loop handles it) or a genuinely missing county (the no-progress guard
+    raises). This prevents a partially-resolved region from being built with an
+    incomplete shape.
+    """
+    resolved: dict[int, County] = {}
+    for component in components:
+      counties = self._resolve_counties_from_codes(
+        [component.code],
+        delineation_bulletin,
+      )
+      if counties is None:
+        return None
+      resolved.update({county.pk: county for county in counties})
+
+    return list(resolved.values()) or None
 
   def _has_omb_dependencies(self, records: list[StaticRegionRecord]) -> bool:
     has_dependency = False

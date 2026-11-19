@@ -3,8 +3,8 @@ from django.contrib.gis.db.models import Union
 from django.contrib.gis.geos import MultiPolygon, Polygon
 from django.utils.translation import gettext_lazy as _
 
-from .enums import DelineationBulletin, Geography
-from .managers import CurrentDelineationManager, MetroManager
+from .enums import DelineationBulletin, RegionCategory, region_category_choices
+from .querysets import RegionQuerySet
 
 WGS_SRID = 4326  # World Geodetic System 1984
 AREA_SRID = 2163  # US National Atlas Equal Area
@@ -100,7 +100,7 @@ class County(models.Model):
 
     constraints = [
       models.UniqueConstraint(
-        name="unique_fips_code",
+        name="django_omb_regions_county_unique_fips",
         fields=["fips2", "fips3"],
       ),
     ]
@@ -116,12 +116,11 @@ class County(models.Model):
 
 
 class Region(models.Model):
-  #: Backwards-compatible alias; the enum now lives in geography.enums.
-  Category = Geography
+  Category = RegionCategory
 
   category = models.CharField(
     max_length=20,
-    choices=Geography.regions,
+    choices=region_category_choices,
     verbose_name=_("Category"),
   )
   name = models.CharField(
@@ -156,9 +155,7 @@ class Region(models.Model):
     verbose_name=_("Square Miles"),
   )
 
-  versions = models.Manager()
-  current = CurrentDelineationManager()
-  metros = MetroManager()
+  objects = RegionQuerySet.as_manager()
 
   class Meta:
     ordering = ["category", "code", "-delineation_bulletin"]
@@ -167,7 +164,7 @@ class Region(models.Model):
 
     constraints = [
       models.UniqueConstraint(
-        name="unique_region",
+        name="django_omb_regions_region_unique_delineation",
         fields=["code", "delineation_bulletin"],
       ),
     ]
@@ -211,5 +208,4 @@ class Region(models.Model):
       self.Category.MSA,
       self.Category.MDIV,
       self.Category.MIC,
-      self.Category.FROST,
     }

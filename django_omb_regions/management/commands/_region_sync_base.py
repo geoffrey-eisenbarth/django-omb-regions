@@ -2,14 +2,14 @@ from typing import TYPE_CHECKING
 
 from django.core.management.base import CommandError
 
-from omb_regions.constants import is_state_code
-from omb_regions.management.commands._sync_base import SyncBaseCommand
-from omb_regions.models import County, Region
+from django_omb_regions.constants import is_state_code
+from django_omb_regions.management.commands._sync_base import SyncBaseCommand
+from django_omb_regions.models import County, Region
 
 if TYPE_CHECKING:
   from collections.abc import Sequence
 
-  from omb_regions.enums import DelineationBulletin
+  from django_omb_regions.enums import DelineationBulletin
 
 
 class RegionSyncBaseCommand(SyncBaseCommand):
@@ -27,7 +27,7 @@ class RegionSyncBaseCommand(SyncBaseCommand):
     if not counties:
       raise CommandError(f"Region {code} has no counties.")
 
-    region_exists = Region.versions.filter(
+    region_exists = Region.objects.filter(
       code=code,
       delineation_bulletin=delineation_bulletin,
     ).exists()
@@ -46,7 +46,7 @@ class RegionSyncBaseCommand(SyncBaseCommand):
       region.set_shape(counties_qs)
       region.set_sq_miles()
 
-      region, was_created = Region.versions.update_or_create(
+      region, was_created = Region.objects.update_or_create(
         code=region.code,
         delineation_bulletin=delineation_bulletin,
         defaults={
@@ -70,7 +70,7 @@ class RegionSyncBaseCommand(SyncBaseCommand):
     counties = {}
 
     for code in codes:
-      if region := Region.versions.filter(
+      if region := Region.objects.filter(
         code=code,
         delineation_bulletin=delineation_bulletin,
       ).first():

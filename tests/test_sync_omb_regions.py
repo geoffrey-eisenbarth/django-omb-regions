@@ -58,6 +58,35 @@ def test_csa_derives_csa_sp_portions(grid):
   assert Region.objects.get(code="206NM").category == Region.Category.CSA_SP
 
 
+def test_split_name_and_postal_code_standard_form():
+  name, postal_code = Command()._split_name_and_postal_code("Texarkana, TX-AR")
+  assert name == "Texarkana"
+  assert postal_code == "TX-AR"
+
+
+def test_split_name_and_postal_code_mayaguez_special_case():
+  name, postal_code = Command()._split_name_and_postal_code(
+    "Mayagüez-San Germán-Cabo Rojo"
+  )
+  assert name == "Mayagüez-San Germán-Cabo Rojo"
+  assert postal_code == "PR"
+
+
+def test_split_name_and_postal_code_legacy_texarkana_duplicate_name():
+  # The 2003/2009 bulletins title this CBSA "Texarkana, TX-Texarkana, AR"
+  # instead of the usual "Texarkana, TX-AR".
+  name, postal_code = Command()._split_name_and_postal_code(
+    "Texarkana, TX-Texarkana, AR"
+  )
+  assert name == "Texarkana"
+  assert postal_code == "TX-AR"
+
+
+def test_split_name_and_postal_code_raises_on_unexpected_multiple_commas():
+  with pytest.raises(ValueError, match="Could not split"):
+    Command()._split_name_and_postal_code("Springfield, MO-Chicago, IL")
+
+
 def test_rerun_updates_existing_state_portions(grid):
   record = _record("19100", Region.Category.MSA, ["48001", "35001"])
   Command()._upsert([record], missing_only=False)

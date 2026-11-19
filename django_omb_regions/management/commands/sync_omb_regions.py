@@ -548,11 +548,20 @@ class Command(RegionSyncBaseCommand):
 
   def _split_name_and_postal_code(self, value: Any) -> tuple[str, str]:
     raw_name = str(value).strip()
-    try:
-      name, postal_code = raw_name.rsplit(", ", 1)
-    except ValueError:
-      if raw_name != "Mayagüez-San Germán-Cabo Rojo":
-        raise
-      name = raw_name
-      postal_code = "PR"
+    parts = raw_name.split(", ")
+    if len(parts) == 1:
+      if raw_name == "Mayagüez-San Germán-Cabo Rojo":
+        name, postal_code = raw_name, "PR"
+      else:
+        raise ValueError(f"Could not split name and postal code from {raw_name!r}")
+    elif len(parts) == 2:
+      name, postal_code = parts
+    elif len(parts) == 3:
+      # The 2003 and 2009 bulletins use title "Texarkana, TX-Texarkana, AR"
+      name, state1_and_name, state2 = parts
+      state1, _, repeated_name = state1_and_name.partition("-")
+      if repeated_name == name:
+        postal_code = f"{state1}-{state2}"
+      else:
+        raise ValueError(f"Could not split name and postal code from {raw_name!r}")
     return name, postal_code

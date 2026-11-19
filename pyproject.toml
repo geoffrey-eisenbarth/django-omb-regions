@@ -35,19 +35,19 @@ ingest = [
   "titlecase>=2.4.1",
   "openpyxl>=3.1.5",
   "xlrd>=2.0.2",
-  "certifi>=2026.10.19",
+  "certifi>=2026.10.23",
 ]
 
 [dependency-groups]
 dev = [
-  "ruff>=0.14.0",
+  "ruff>=0.17.6",
   "mypy>=1.20.1",
   "django-stubs>=6.0.2",
   "psycopg[binary]>=3.3.3",
   "pytest>=9.1.1",
   "pytest-django>=4.14.0",
   "types-requests>=2.33.0",
-  "certifi>=2026.10.19",
+  "certifi>=2026.10.23",
   "pre-commit>=4.6.2",
   "python-dotenv>=1.2.1",
   "coverage>=7.13.5",

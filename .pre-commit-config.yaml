@@ -9,12 +9,12 @@ repos:
     - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/uv-pre-commit
-  rev: 0.13.4 # Matches the uv version used by this project
+  rev: 0.13.7 # Matches the uv version used by this project
   hooks:
     - id: uv-lock
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.17.1 # Matches pyproject.toml's ruff pin
+  rev: v0.17.6 # Matches pyproject.toml's ruff pin
   hooks:
     - id: ruff-check
       args: [--fix]
@@ -28,7 +28,7 @@ repos:
       language: system
       types: [python]
       pass_filenames: false
-      files: ^omb_regions/.*\.py$
+      files: ^django_omb_regions/.*\.py$
 
     - id: pytest
       name: Run Pytest
@@ -36,6 +36,6 @@ repos:
       language: system
       types: [python]
       pass_filenames: false
-      files: ^(omb_regions|tests)/.*\.py$
+      files: ^(django_omb_regions|tests)/.*\.py$
       args:
         - "-q"

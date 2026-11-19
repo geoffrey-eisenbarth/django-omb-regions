@@ -1,5 +1,9 @@
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 SECRET_KEY = "test-only-not-secret"
 
 INSTALLED_APPS = [

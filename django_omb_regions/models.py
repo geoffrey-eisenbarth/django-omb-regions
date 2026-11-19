@@ -208,4 +208,7 @@ class Region(models.Model):
       self.Category.MSA,
       self.Category.MDIV,
       self.Category.MIC,
+      self.Category.MSA_SP,
+      self.Category.MDIV_SP,
+      self.Category.MIC_SP,
     }

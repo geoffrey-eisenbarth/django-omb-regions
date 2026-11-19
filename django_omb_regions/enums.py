@@ -19,10 +19,27 @@ class RegionCategory(TextChoices):
   MDIV = "MDIV", _("Metropolitan Division")
   MIC = "MIC", _("Micropolitan Statistical Area")
 
+  # Library-derived, not official OMB geographies
+  CSA_SP = "CSA_SP", _("Combined Statistical Area (State Portion)")
+  MSA_SP = "MSA_SP", _("Metropolitan Statistical Area (State Portion)")
+  MDIV_SP = "MDIV_SP", _("Metropolitan Division (State Portion)")
+  MIC_SP = "MIC_SP", _("Micropolitan Statistical Area (State Portion)")
+
   @classmethod
   def delineated(cls) -> frozenset[RegionCategory]:
     """Categories whose regions are defined by an OMB delineation bulletin."""
-    return frozenset({cls.CSA, cls.MSA, cls.MDIV, cls.MIC})
+    return frozenset(
+      {
+        cls.CSA,
+        cls.MSA,
+        cls.MDIV,
+        cls.MIC,
+        cls.CSA_SP,
+        cls.MSA_SP,
+        cls.MDIV_SP,
+        cls.MIC_SP,
+      }
+    )
 
   @classmethod
   def is_delineated(cls, category: str) -> bool:

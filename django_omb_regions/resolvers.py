@@ -28,6 +28,9 @@ class Geography:
       Region.Category.MSA,
       Region.Category.MDIV,
       Region.Category.MIC,
+      Region.Category.MSA_SP,
+      Region.Category.MDIV_SP,
+      Region.Category.MIC_SP,
     }
 
   @property

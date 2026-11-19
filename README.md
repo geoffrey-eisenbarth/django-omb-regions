@@ -170,11 +170,14 @@ PostgreSQL with PostGIS reachable. The database connection is read from
 environment variables (defaulting to `postgres`/`postgres` on `localhost:5432`,
 which matches the CI service):
 
+Copy `.env.example` to `.env` and set the values there; `tests/settings.py` loads
+it automatically via `python-dotenv`:
+
 ```bash
-OMB_TEST_DB_USER=myuser OMB_TEST_DB_PASSWORD=mypass uv run pytest
+cp .env.example .env
+uv run pytest
 ```
 
-`OMB_TEST_DB_NAME`, `OMB_TEST_DB_HOST`, and `OMB_TEST_DB_PORT` are also honored.
 The test runner creates (and drops) its own `test_*` database, so the configured
 role needs `CREATEDB`, and PostGIS must be installable on the test database
 (either the role is a superuser or `template1` already has the extension).

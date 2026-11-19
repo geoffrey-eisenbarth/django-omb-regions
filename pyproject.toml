@@ -49,6 +49,7 @@ dev = [
   "types-requests>=2.33.0",
   "certifi>=2026.10.19",
   "pre-commit>=4.6.2",
+  "python-dotenv>=1.2.1",
 ]
 
 [build-system]

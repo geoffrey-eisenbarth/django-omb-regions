@@ -1,5 +1,6 @@
 import io
 import warnings
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -8,7 +9,7 @@ import requests
 from django.core.management.base import CommandError
 from django.db import transaction
 
-from django_omb_regions.enums import DelineationBulletin
+from django_omb_regions.enums import DelineationBulletin, RegionCategory
 from django_omb_regions.management.commands._region_sync_base import (
   RegionSyncBaseCommand,
 )  # noqa: E501
@@ -78,6 +79,13 @@ CATEGORY_BY_LABEL = {
   "Micropolitan Statistical Area": Region.Category.MIC,
 }
 
+SP_CATEGORY_BY_PARENT = {
+  Region.Category.CSA: Region.Category.CSA_SP,
+  Region.Category.MSA: Region.Category.MSA_SP,
+  Region.Category.MDIV: Region.Category.MDIV_SP,
+  Region.Category.MIC: Region.Category.MIC_SP,
+}
+
 
 @dataclass(frozen=True)
 class OmbRegionSource:
@@ -91,7 +99,7 @@ class OmbRegionRecord:
   code: str
   name: str
   postal_code: str
-  category: str
+  category: RegionCategory
   county_code: tuple[str, ...]
 
 
@@ -341,7 +349,9 @@ class Command(RegionSyncBaseCommand):
     summary = SyncSummary()
     with transaction.atomic():
       for record in records:
-        counties = list(County.objects.filter(code__in=record.county_code))
+        counties = list(
+          County.objects.filter(code__in=record.county_code).select_related("state")
+        )
         found_codes = {county.code for county in counties}
         missing_codes = sorted(set(record.county_code) - found_codes)
         if missing_codes:
@@ -357,14 +367,66 @@ class Command(RegionSyncBaseCommand):
           counties=counties,
           missing_only=missing_only,
         )
-        if was_skipped:
-          summary.skipped += 1
-        elif was_created:
-          summary.created += 1
-        else:
-          summary.updated += 1
+        self._add_to_summary(summary, was_created=was_created, was_skipped=was_skipped)
+
+        if sp_category := SP_CATEGORY_BY_PARENT.get(record.category):
+          self._upsert_state_portions(
+            record,
+            counties,
+            sp_category=sp_category,
+            missing_only=missing_only,
+            summary=summary,
+          )
 
     return summary
+
+  def _add_to_summary(
+    self,
+    summary: SyncSummary,
+    *,
+    was_created: bool,
+    was_skipped: bool,
+  ) -> None:
+    if was_skipped:
+      summary.skipped += 1
+    elif was_created:
+      summary.created += 1
+    else:
+      summary.updated += 1
+
+  def _upsert_state_portions(
+    self,
+    record: OmbRegionRecord,
+    counties: list[County],
+    *,
+    sp_category: str,
+    missing_only: bool,
+    summary: SyncSummary,
+  ) -> None:
+    """Derive one state-portion Region per state a multistate region spans.
+
+    Single-state regions get no portions: they would just duplicate the
+    parent. Each portion's code is the parent's code plus the state's postal
+    code (e.g. "19100TX"), which can't collide with any county, state, or
+    metro code since those are always pure digits.
+    """
+    counties_by_state = defaultdict(list)
+    for county in counties:
+      counties_by_state[county.state].append(county)
+    if len(counties_by_state) < 2:
+      return
+
+    for state, state_counties in counties_by_state.items():
+      was_created, was_skipped = self._upsert_region(
+        code=f"{record.code}{state.postal_code}",
+        name=record.name,
+        postal_code=state.postal_code,
+        category=sp_category,
+        delineation_bulletin=record.delineation_bulletin,
+        counties=state_counties,
+        missing_only=missing_only,
+      )
+      self._add_to_summary(summary, was_created=was_created, was_skipped=was_skipped)
 
   def _warn_missing_counties(
     self,

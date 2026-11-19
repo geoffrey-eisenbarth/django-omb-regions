@@ -306,7 +306,7 @@ wheels = [
 
 [[package]]
 name = "django-omb-regions"
-version = "0.1.0"
+version = "0.0.1.dev1"
 source = { editable = "." }
 dependencies = [
     { name = "django" },

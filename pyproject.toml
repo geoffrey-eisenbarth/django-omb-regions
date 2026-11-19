@@ -1,6 +1,6 @@
 [project]
 name = "django-omb-regions"
-version = "0.1.0"
+version = "0.0.1.dev1"
 description = "Versioned US states, counties, and OMB regions for GeoDjango."
 readme = "README.md"
 requires-python = ">=3.14"
